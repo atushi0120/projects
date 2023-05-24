@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}LogIn{% endblock %}
+
+{% block contents %}
+    <form method="post">
+        {% csrf_token %}
+        <label for="Username">Username</label>
+        <input type="text" name="username" id="id_username" maxlength="150" autocapitalize="none" autocomplete="username" class="form-control" required autofocus>
+        <label for="Password">Password</label>
+        <input type="password" name="password" id="id_password" autocomplete="current-password" class="form-control" required autofocus>
+        <input type="submit" value="ログイン">
+    </form>
+{% endblock %}

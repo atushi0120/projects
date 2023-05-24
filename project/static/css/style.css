@@ -1,0 +1,24 @@
+*{
+    margin:0;
+    padding: 0 ;
+}
+
+nav ul{
+    display: flex;
+    margin: 0 ;
+    padding: 1rem 0 ;
+    background-color: black;
+    color: white
+}
+
+nav ul li {
+    list-style-type: none ;
+    list-style: none;
+    margin-right: 1rem;
+    color: white;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: white;
+}

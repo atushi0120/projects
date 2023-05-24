@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}Map & Event{% endblock %}
+
+{% block contents %}
+<div id="map_wrapper">
+    <section id="map">
+        <div id="mapid" style="height: 70vh;"></div>
+    </section>    
+    <section id="form">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <table>
+                <tr>
+                    <th>ユーザー</th>
+                    <td>{{form.user}}</td>
+                </tr>
+                <tr>
+                    <th>緯度</th>
+                    <td><input id="id_latitude" name="latitude" type="text" /></td>
+                </tr>
+                <tr>
+                    <th>経度</th>
+                    <td><input id="id_longitude" name="longitude" type="text" /></td>
+                </tr>
+                <tr>
+                    <th>開始日時</th>
+                    <td>{{form.start_date}}</td>
+                </tr>
+                <tr>
+                    <th>終了日時</th>
+                    <td>{{form.end_date}}</td>
+                </tr>
+                <tr>
+                    <th>記事名</th>
+                    <td>{{form.title}}</td>
+                </tr>
+                <tr>
+                    <th>コンテンツ</th>
+                    <td>{{form.content}}</td>
+                </tr>
+                <tr>
+                    <th>画像</th>
+                    <td>{{form.image}}</td>
+                </tr>
+            </table>
+            <button type="submit">SUBMIT</button>
+        </form>
+    </section>    
+    <section id="events">
+        <!-- Show Events Button -->
+        <button id="show-events-button">Show Events</button>
+    </section>
+</div>
+
+
+<script>
+    var map = L.map('mapid').setView([35.6895, 139.6917], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+    }).addTo(map);
+
+    function onMapClick(e) {
+        document.getElementById('id_latitude').value = e.latlng.lat;
+        document.getElementById('id_longitude').value = e.latlng.lng;
+    }
+
+    map.on('click', onMapClick);
+
+    var articles = JSON.parse('{{ articles | escapejs }}');
+    var markers = {};
+
+    articles.forEach(function(article, index) {
+        var lat = article.fields.latitude;
+        var lng = article.fields.longitude;
+        var title = article.fields.title;
+        var content = article.fields.content;
+        var start_date = new Date(article.fields.start_date).toLocaleString();
+        var end_date = article.fields.end_date ? new Date(article.fields.end_date).toLocaleString() : "Not specified";
+        var imageUrl = article.fields.image ? 'media/' + article.fields.image : null;
+
+        var marker = L.marker([lat, lng]).addTo(map);
+        markers[index] = marker; 
+
+        var imageTag = imageUrl ? `<img src="../${imageUrl}" alt="${title}" style="width: 100px; height: auto;">` : "";
+
+        var popupContent = `
+            <h3>${title}</h3>
+            <p>${content}</p>
+            <p>Start date: ${start_date}</p>
+            <p>End date: ${end_date}</p>
+            ${imageTag}
+            <button onclick="            deleteArticle(${article.pk})">Delete</button>
+            <button onclick="editArticle(${article.pk})">Edit</button>
+        `;
+
+        marker.bindPopup(popupContent);
+    });
+
+
+    function deleteArticle(articleId) {
+        fetch(`/delete_article/${articleId}/`, { 
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),  // CSRF token for Django
+            },
+            credentials: 'same-origin', // to include the cookie in the request
+        })
+        .then(response => {
+            if (!response.ok) throw new Error(response.statusText);
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // TODO: remove marker from map
+                // You need to keep track of your markers when you create them 
+                // so that you can remove them here.
+                location.reload();
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function editArticle(articleId) {
+    // Fetch the article details and populate the form for editing.
+    fetch(`/get_article/${articleId}/`)
+    .then(response => response.json())
+    .then(data => {
+        document.querySelector('#id_latitude').value = data.fields.latitude;
+        document.querySelector('#id_longitude').value = data.fields.longitude;
+        document.querySelector('#id_start_date').value = data.fields.start_date;
+        document.querySelector('#id_end_date').value = data.fields.end_date;
+        document.querySelector('#id_title').value = data.fields.title;
+        document.querySelector('#id_content').value = data.fields.content;
+        // Handle the image field as required for your application.
+    });
+}
+
+
+    // Function to get cookie (needed for CSRF token)
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Show Events Button Function
+    document.getElementById('show-events-button').addEventListener('click', function() {
+        // Check if a table already exists. If so, remove it.
+        var existingTable = document.getElementById('event-table');
+        if (existingTable) {
+            document.body.removeChild(existingTable);
+        }
+
+        var table = document.createElement('table');
+        table.id = 'event-table'; // add ID to the table
+        var tableBody = document.createElement('tbody');
+        var tableRows = articles.map(function(article, index) {
+            return `
+                <tr>
+                    <td>${article.fields.title}</td>
+                    <td>${article.fields.start_date}</td>
+                    <td>${article.fields.end_date}</td>
+                </tr>
+            `;
+        });
+        tableBody.innerHTML = tableRows.join('\n');
+        table.appendChild(tableBody);
+        document.body.appendChild(table);
+
+        // Add click event listener to each row in the table
+        Array.from(document.getElementById('event-table').querySelectorAll('tr')).forEach(function(row, index) {
+            row.addEventListener('click', function() {
+                markers[index].openPopup(); // Open the popup for the marker corresponding to the clicked row
+            });
+        });
+    });
+</script>
+{% endblock %}
+

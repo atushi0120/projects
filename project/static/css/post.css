@@ -1,0 +1,75 @@
+@keyframes gradient {
+    0% {background-position: 0% 0%;}
+    25% {background-position: 100% 0%;}
+    50% {background-position: 100% 100%;}
+    75% {background-position: 0% 100%;}
+    100% {background-position: 0% 0%;}
+}
+
+body {
+    background-size: 200% 200%;
+    background-image: linear-gradient(45deg, skyblue 0%, #45B649 100%);
+    animation: gradient 3s linear infinite;
+}
+
+#map_wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: space-between;
+    margin: 40px 0px 20px 20px
+}
+
+#map {
+    flex: 7;
+    height: 550px;
+    margin-right: 20px;
+}
+
+#mapid {
+    border-radius: 15px;
+    border: 3px solid;
+    border-image: linear-gradient(to bottom, skyblue, #45B649) 1;
+    overflow: hidden;
+}
+
+#form {
+    font-size: 0.5rem;
+    flex: 3;
+    height: 550px;
+}
+
+#events {
+    width: 100%;
+    margin-top: 30px;
+}
+
+table#event-table{
+    border: 1px solid #ccc;
+    margin: 20px ;
+}
+
+table#event-table th,table#event-table td{
+    border: 1px solid #ccc
+}
+
+button {
+    background: linear-gradient(45deg, #007BFF, #0069D9);
+    color: white;
+    padding: 10px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    transition-duration: 0.4s;
+    box-shadow: 3px 3px 5px 0 rgba(0,0,0,0.5);
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+}
+
+button:hover {
+    background: linear-gradient(45deg, #0069D9, #0056b3);
+   
